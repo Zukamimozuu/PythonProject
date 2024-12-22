@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}Update User{% endblock %}
+
+{% block content %}
+<h1>Update User</h1>
+<form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}  <!-- This will render the updated form without user_role -->
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+</form>
+<a href="{% url 'users:team_list' %}" class="btn btn-secondary mt-3">Back to Team List</a>
+{% endblock %}

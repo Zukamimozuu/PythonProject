@@ -1,29 +1,175 @@
-<!-- navbar.html -->
-<nav style="background-color: #f8f9fa; padding: 10px;">
-    <div>
-        <a href="{% if user.user_role == 'Manager' %}{% url 'manager-dashboard' %}{% else %}{% url 'member-dashboard' %}{% endif %}">Home</a>
-        <div style="float: right;">
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <a class="navbar-brand me-3" href="{% if user.user_role == 'Manager' %}{% url 'manager-dashboard' %}{% else %}{% url 'member-dashboard' %}{% endif %}">
+            Home
+        </a>
+
+        <!-- Left Section: Navigation Links -->
+        <div class="d-flex">
+            <div class="navbar-nav">
+                <a class="nav-link {% if request.path == '/projects/your-work/' %}active text-white p-2 me-3{% endif %}" 
+                   href="{% url 'projects:your_work' %}" 
+                   style="{% if request.path == '/projects/your-work/' %}background-color: #8ED9E3;{% endif %}">
+                    <i class="bi bi-folder"></i> Your Work
+                </a>
+
+                {% if request.user.user_role == 'Manager' %}
+                    <a class="nav-link {% if request.path == '/users/teams/' %}active text-white p-2 me-3{% endif %}" 
+                    href="{% url 'users:team_list' %}" 
+                    style="{% if request.path == '/users/teams/' %}background-color: #8ED9E3;{% endif %}">
+                        <i class="bi bi-people"></i> Teams
+                    </a>
+                {% endif %}
+
+                {% if request.user.user_role == 'Manager' %}
+                    <a class="nav-link {% if request.path == '/projects/report/' %}active text-white p-2 me-3{% endif %}" 
+                    href="{% url 'projects:report' %}" 
+                    style="{% if request.path == '/projects/report/' %}background-color: #8ED9E3;{% endif %}">
+                        <i class="bi bi-bar-chart"></i> Report
+                    </a>
+                {% endif %}
+                
+                {% if request.user.user_role == 'Member' %}
+                    <a class="nav-link {% if request.path == '/projects/member-report/' %}active text-white p-2 me-3{% endif %}" 
+                    href="{% url 'projects:member-report' %}" 
+                    style="{% if request.path == '/projects/member-report/' %}background-color: #8ED9E3;{% endif %}">
+                        <i class="bi bi-bar-chart"></i> Report
+                    </a>
+                {% endif %}
+
+            </div>
+        </div>
+
+        <!-- Right Section: Profile and Notifications -->
+        <div class="d-flex align-items-center">
             {% if request.user.is_authenticated %}
-                <span>Welcome, {{ request.user.username }}!</span>
-                <!-- Dropdown Menu -->
-                <div style="display: inline-block; position: relative;">
-                    <button style="background: none; border: none; cursor: pointer;">Settings ▼</button>
-                    <div style="position: absolute; background: white; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); display: none;" id="dropdown-menu">
-                        <a href="{% url 'users:profile' %}" style="display: block; padding: 5px;">Profile</a>
-                        <a href="{% url 'users:profile_edit' %}" style="display: block; padding: 5px;">Edit Profile</a>  
-                        <a href="{% url 'users:logout' %}" style="display: block; padding: 5px; color: red;">Logout</a>                     
-                    </div>
-                </div>
-                <script>
-                    // Toggle Dropdown
-                    document.querySelector("button").addEventListener("click", function () {
-                        var dropdown = document.getElementById("dropdown-menu");
-                        dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
-                    });
-                </script>
+            <span class="me-3">Welcome, {{ request.user.username }}!</span>
+
+            {% if request.user.user_role != 'Manager' %}
+            <!-- Notifications Dropdown -->
+            <div class="dropdown me-3 position-relative">
+                <button class="btn btn-link text-decoration-none d-flex align-items-center dropdown-toggle" id="notificationButton" type="button">
+                    <i class="bi bi-bell me-1"></i> Notifications
+                    <span class="dropdown-arrow"></span>
+                </button>
+                <ul class="dropdown-menu" id="notificationMenu">
+                    {% if notifications %}
+                        {% for notification in notifications %}
+                        <li>
+                            <a class="dropdown-item {% if notification.is_read %}read{% else %}unread{% endif %}">
+                                {{ notification.message }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li><a class="dropdown-item" href="#">No new notifications</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- Settings Dropdown -->
+            <div class="dropdown position-relative">
+                <button class="btn btn-link text-decoration-none d-flex align-items-center dropdown-toggle" id="settingsButton" type="button">
+                    <i class="bi bi-gear me-1"></i> Settings
+                    <span class="dropdown-arrow"></span>
+                </button>
+                <ul class="dropdown-menu" id="settingsMenu">
+                    <li><a class="dropdown-item" href="{% url 'users:profile' %}">Profile</a></li>
+                    <li><a class="dropdown-item text-danger" href="{% url 'users:logout' %}">Logout</a></li>
+                </ul>
+            </div>
             {% else %}
-                <a href="{% url 'login' %}">Login</a>
+            <a class="btn btn-link text-decoration-none" href="{% url 'login' %}">Login</a>
             {% endif %}
         </div>
-    </div>  
+    </div>
 </nav>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const dropdownButtons = document.querySelectorAll('.dropdown-toggle');
+        dropdownButtons.forEach(button => {
+            const menu = button.nextElementSibling;
+            const arrow = button.querySelector('.dropdown-arrow');
+
+            button.addEventListener('click', () => {
+                menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+                arrow.classList.toggle('open');
+            });
+        });
+
+        document.addEventListener('click', (event) => {
+            dropdownButtons.forEach(button => {
+                const menu = button.nextElementSibling;
+                if (!button.contains(event.target)) {
+                    menu.style.display = 'none';
+                    button.querySelector('.dropdown-arrow').classList.remove('open');
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+    .dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 20px;
+        background-color: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 0.25rem;
+        padding: 0.5rem 0;
+        list-style: none;
+        z-index: 1000;
+        min-width: 180px;
+        margin: 0;
+    }
+
+    .dropdown-menu li {
+        padding: 0.5rem 1rem;
+    }
+
+    .dropdown-menu li:hover {
+        background-color: #f8f9fa;
+    }
+
+    .unread {
+        font-weight: bold;
+        background-color: #f0f0f0;
+    }
+
+    .read {
+        color: gray;
+    }
+
+    .btn-link {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .dropdown-arrow {
+        margin-left: 0.5rem;
+        border: solid gray;
+        border-width: 0 2px 2px 0;
+        display: inline-block;
+        padding: 3px;
+        transform: rotate(45deg);
+        transition: transform 0.2s ease;
+    }
+
+    .dropdown-arrow.open {
+        transform: rotate(-135deg);
+    }
+
+    .dropdown-toggle::after {
+        display: none !important;
+    }
+
+
+
+
+    
+</style>

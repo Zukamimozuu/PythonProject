@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Team List{% endblock %}
+
+{% block content %}
+<h1 id="team-list-header">Team List</h1>
+
+{% if messages %}
+  <div class="alert alert-info">
+    {% for message in messages %}
+      <p>{{ message }}</p>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% if request.user.user_role == 'Manager' %}
+<!-- Button to toggle between team list and add user form -->
+<button type="button" class="btn btn-primary mb-3" id="add-user-button" onclick="toggleAddUserForm()">Add User</button>
+
+<!-- Add User Form (Initially Hidden) -->
+<div id="addUserForm" style="display:none;">
+  <h3>Create a New Member</h3>
+  {% if form %}
+    <form method="POST" action="{% url 'users:create_member' %}">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-primary">Create Member</button>
+    </form>
+  {% endif %}
+  <button class="btn btn-secondary mt-3" onclick="showTeamList()">Back to Team List</button>
+</div>
+
+<!-- Table for Members (Initially Shown) -->
+<div id="teamList">
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Contact No</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ user.name }}</td>
+        <td>{{ user.username }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.user_role }}</td>
+        <td>{{ user.contact_no }}</td>
+        <td>
+          <!-- Update Button -->
+          <a href="{% url 'users:update_user' user.user_id %}" class="btn btn-warning btn-sm">Update</a>
+
+          <form method="POST" action="{% url 'users:delete_user' user.user_id %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?');">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7" class="text-center">No members found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% else %}
+<!-- Message for non-Managers -->
+<p>You don't have permission to view this section.</p>
+{% endif %}
+
+<script>
+  // Function to toggle the visibility of the form and the team list
+  function toggleAddUserForm() {
+    var addUserButton = document.getElementById('add-user-button');
+    var teamListHeader = document.getElementById('team-list-header');
+    var teamList = document.getElementById('teamList');
+    var addUserForm = document.getElementById('addUserForm');
+
+    // Hide team list and button, show the form
+    if (addUserForm.style.display === 'none' || addUserForm.style.display === '') {
+      teamList.style.display = 'none'; // Hide the team list
+      addUserForm.style.display = 'block'; // Show the add user form
+      addUserButton.style.display = 'none'; // Hide the Add User button
+      teamListHeader.style.display = 'none'; // Hide the Team List header
+    } else {
+      // Hide the add user form and show the team list and button again
+      addUserForm.style.display = 'none'; // Hide the add user form
+      teamList.style.display = 'block'; // Show the team list
+      addUserButton.style.display = 'block'; // Show the Add User button
+      teamListHeader.style.display = 'block'; // Show the Team List header
+    }
+  }
+
+  // Function to show the team list again
+  function showTeamList() {
+    var teamList = document.getElementById('teamList');
+    var addUserForm = document.getElementById('addUserForm');
+    var addUserButton = document.getElementById('add-user-button');
+    var teamListHeader = document.getElementById('team-list-header');
+
+    // Show the team list and button, hide the add user form
+    teamList.style.display = 'block'; // Show the team list
+    addUserForm.style.display = 'none'; // Hide the add user form
+    addUserButton.style.display = 'block'; // Show the Add User button
+    teamListHeader.style.display = 'block'; // Show the Team List header
+  }
+</script>
+
+{% endblock %}

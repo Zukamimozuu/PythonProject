@@ -6,3 +6,4 @@ def base_manager(request):
 
 def base_member(request):
     return render(request, 'base.html', {'dashboard_title': 'Member Dashboard', 'user': request.user})
+

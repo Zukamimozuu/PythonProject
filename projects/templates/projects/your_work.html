@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Projects{% endblock %}
+
+{% block content %}
+<h1>Your Projects</h1>
+
+<!-- Display User Role and User Object for debugging -->
+<p>User: {{ user }}</p>
+<p>User Role: "{{ user.user_role }}"</p>
+
+<!-- List of projects -->
+<h2>Projects You Are Part Of</h2>
+<ul>
+    {% for project in projects %}
+    <li>
+        <a href="{% url 'projects:project_tasks' project.project_id %}">{{ project.project_name }}</a>
+        {% if project.created_by == user %}
+            <form action="{% url 'projects:delete_project' project.project_id %}" method="POST">
+                {% csrf_token %}
+                <button type="submit">Delete</button>
+            </form>
+        {% endif %}
+    </li>
+    {% empty %}
+    <li>No projects found.</li>
+    {% endfor %}
+</ul>
+
+{% if project.created_by == user %}
+<h2>Create a New Project</h2>
+<a href="{% url 'projects:create_project' %}" class="btn btn-primary">Add Project</a>
+{% endif %}
+
+{% if messages %}
+    <ul>
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+{% endblock %}

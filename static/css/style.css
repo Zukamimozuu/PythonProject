@@ -8,3 +8,42 @@ body {
     min-height: 100vh;
     min-width: 100vw;
 }
+
+@media print {
+    /* Hide all buttons in print view */
+    .btn {
+        display: none !important;
+    }
+
+    /* Hide the Gantt chart in print view */
+    .chartdiv {
+        display: none !important;
+    }
+
+    /* Add borders to the table */
+    #task-table, #task-table th, #task-table td {
+        border: 1px solid black !important;
+        border-collapse: collapse;
+    }
+
+    /* Remove hover effects and animations in print view */
+    .project-item {
+        transition: none !important;
+        transform: none !important;
+    }
+
+    /* Style headers for print */
+    h1, h2, h3 {
+        color: black;
+    }
+
+    /* Adjust the width for better printing */
+    .container {
+        width: 100%;
+    }
+
+    /* Optional: hide project-specific elements */
+    .project-item {
+        display: block !important;
+    }
+}

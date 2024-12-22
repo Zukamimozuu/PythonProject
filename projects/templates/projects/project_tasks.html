@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ project.project_name }} Tasks{% endblock %}
+
+{% block content %}
+<h1>Tasks for Project: {{ project.project_name }}</h1>
+<a href="{% url 'tasks:add_task' project_id=project.project_id %}" class="btn btn-primary">Add Task</a>
+
+<!-- Display Project Members -->
+<h2>Project Members</h2>
+<ul>
+    {% for member in project.members.all %}
+    <li>{{ member.name }} - {{ member.user_role }}</li>
+    {% empty %}
+    <li>No members assigned to this project.</li>
+    {% endfor %}
+</ul>
+
+<!-- Custom CSS for Dropdown -->
+<style>
+    /* Custom dropdown styling */
+    .custom-dropdown {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 16px;
+        width: 100%;
+        background-color: #fff;
+        color: #333;
+    }
+
+    .custom-dropdown:focus {
+        border-color: #5c9f68;
+        outline: none;
+        background-color: #f0f8f0;
+    }
+</style>
+
+<!-- For Managers: Display all tasks in a table -->
+{% if request.user == project.created_by %}
+    <h2>All Tasks for this Project</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Task Name</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Start Date</th>
+                <th>Due Date</th>
+                <th>Assigned To</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+            <tr>
+                <td>{{ task.task_name }}</td>
+                <td>{{ task.priority }}</td>
+                <td>{{ task.status }}</td>
+                <td>{{ task.start_date }}</td>
+                <td>{{ task.due_date }}</td>
+                <td>
+                    {% if task.assigned_to %}
+                    {{ task.assigned_to.name }}
+                    {% else %}
+                    <em>Not assigned</em>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center">No tasks in this project.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+<!-- For Members: Display only tasks assigned to the logged-in user in a table -->
+{% if request.user != project.created_by %}
+    <h2>Tasks Assigned to You</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Task Name</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Start Date</th>
+                <th>Due Date</th>
+                <th>Update Status</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+            <tr>
+                <td>{{ task.task_name }}</td>
+                <td>{{ task.priority }}</td>
+                <td>{{ task.status }}</td>
+                <td>{{ task.start_date }}</td>
+                <td>{{ task.due_date }}</td>
+                <td>
+                    {% if task.task_id %}
+                    <form method="POST" action="{% url 'tasks:update_status' task_id=task.task_id %}">
+                        {% csrf_token %}
+                        <!-- Custom Dropdown for Status -->
+                        <select name="status" class="custom-dropdown">
+                            <option value="Pending" {% if task.status == 'Pending' %}selected{% endif %}>Pending</option>
+                            <option value="In Progress" {% if task.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                            <option value="Completed" {% if task.status == 'Completed' %}selected{% endif %}>Completed</option>
+                        </select>
+                    
+                        <button type="submit" class="btn btn-success btn-sm">Update</button>
+                    </form>
+                    
+                    {% else %}
+                        <p>No task ID available</p>
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="6" class="text-center">No tasks assigned to you for this project.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+<a href="{% url 'projects:your_work' %}" class="btn btn-secondary">Back to Your Work</a>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Member{% endblock %}
+
+{% block content %}
+<h1>Create a New Member</h1>
+
+{% if messages %}
+  <div class="alert alert-danger">
+    {% for message in messages %}
+      <p>{{ message }}</p>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<form method="POST" id="create-member-form">
+  {% csrf_token %}
+  {{ form.as_p }}  <!-- This will render the form fields with any error messages -->
+  <button type="submit" class="btn btn-primary">Create Member</button>
+</form>
+
+{% endblock %}
+
+<script>
+  document.getElementById('create-member-form').addEventListener('submit', function(event) {
+    // Get the values of password and confirm password
+    var password = document.querySelector('[name="password"]').value;
+    var confirmPassword = document.querySelector('[name="confirm_password"]').value;
+    var errorDiv = document.getElementById('password-error');
+
+    // If the passwords do not match, prevent form submission and show an error message
+    if (password !== confirmPassword) {
+      event.preventDefault();  // Prevent the form from submitting
+
+      // If the error message div doesn't already exist, create it
+      if (!errorDiv) {
+        errorDiv = document.createElement('div');
+        errorDiv.id = 'password-error';
+        errorDiv.classList.add('text-red-500', 'mt-2');
+        document.getElementById('create-member-form').appendChild(errorDiv);
+      }
+
+      // Set the error message
+      errorDiv.innerText = "Password and Confirm Password do not match!";
+    } else {
+      // Remove error message if passwords match
+      if (errorDiv) {
+        errorDiv.remove();
+      }
+    }
+  });
+</script>

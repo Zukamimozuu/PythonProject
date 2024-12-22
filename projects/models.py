@@ -7,7 +7,7 @@ class Project(models.Model):
     description = models.TextField()
     start_date = models.DateField()
     end_date = models.DateField()
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_projects')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_projects')
     members = models.ManyToManyField(User, through='ProjectMember', related_name='projects')
 
     def __str__(self):
@@ -17,7 +17,10 @@ class Project(models.Model):
 class ProjectMember(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    member_role = models.CharField(max_length=50)  # Role in the project (e.g., Manager, Developer)
+    member_role = models.CharField(max_length=50)
 
     class Meta:
         unique_together = ('user', 'project')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.project.project_name} ({self.member_role})"

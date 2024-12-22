@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Project{% endblock %}
+
+{% block content %}
+<h1>Create a New Project</h1>
+
+<form method="POST">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div>
+        {{ form.project_name.label_tag }} {{ form.project_name }}
+    </div>
+    <div>
+        {{ form.description.label_tag }} {{ form.description }}
+    </div>
+    <div>
+        {{ form.start_date.label_tag }} {{ form.start_date }}
+    </div>
+    <div>
+        {{ form.end_date.label_tag }} {{ form.end_date }}
+    </div>
+    <div>
+        <h3>Members</h3>
+        {% for checkbox in form.members %}
+            <div>
+                {{ checkbox.tag }} {{ checkbox.choice_label }}
+            </div>
+        {% endfor %}
+    </div>
+    <button type="submit">Create Project</button>
+</form>
+
+{% if messages %}
+    <ul>
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+{% endblock %}

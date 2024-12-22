@@ -24,12 +24,12 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('manager-dashboard/', views.base_manager, name='manager-dashboard'),
     path('member-dashboard/', views.base_member, name='member-dashboard'),
-    path('users/', include('users.urls')),  
-    path('projects/', admin.site.urls),
-    path('notifications/', admin.site.urls),
-    path('tasks/', admin.site.urls),
-    path('', include('users.urls')), 
+    path('users/', include('users.urls')),
+    path('projects/', include('projects.urls')),
+    path('notifications/', include('notifications.urls')),
+    path('tasks/', include('tasks.urls')),
 ]
+
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

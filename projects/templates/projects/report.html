@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<div class="container mt-5">
+    <h1 class="mb-4">Project Manager Report</h1>
+
+    <h2>Project List</h2>
+    <div id="project-list">
+        {% for data in project_data %}
+        <div class="project-item border p-4 mb-4 rounded hover:scale-110 transform transition-all duration-300 ease-in-out" 
+            id="project_{{ data.project.project_id }}" style="cursor: pointer;">
+            <h2>{{ data.project.project_name }}</h2>
+            <p>Members: {{ data.members_data|length }} | Tasks: {{ data.total_tasks }}</p>
+            <small>Completed Tasks: {{ data.completed_tasks }} | Progress: {{ data.average_progress|floatformat:2 }}%</small>
+
+            <!-- Member and Task Table -->
+            <h4 class="mt-4">Member Tasks and Progress</h4>
+            <table class="table table-bordered mt-3">
+                <thead>
+                    <tr>
+                        <th>Member Name</th>
+                        <th>Task Assigned</th>
+                        <th>Task Progress</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Start Date</th>
+                        <th>Due Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for member_data in data.members_data %}
+                    <tr>
+                        <td>{{ member_data.member.username }}</td>
+                        <td>
+                            {% for task in data.tasks %}
+                                {% if task.assigned_to == member_data.member %}
+                                    {{ task.task_name }}<br>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if not member_data.member.tasks.all %}
+                                No tasks assigned
+                            {% endif %}
+                        </td>
+                        
+                        <td>
+                            {{ member_data.member_progress|floatformat:2 }}%
+                        </td>
+
+                        <td>
+                            {% for task in data.tasks %}
+                                {% if task.assigned_to == member_data.member %}
+                                    {{ task.priority }}<br>
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        
+                        <td>
+                            {% for task in data.tasks %}
+                                {% if task.assigned_to == member_data.member %}
+                                    {{ task.status }}<br>
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        
+                        <td>
+                            {% for task in data.tasks %}
+                                {% if task.assigned_to == member_data.member %}
+                                    {{ task.start_date|date:"Y-m-d" }}<br>
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+
+                        <td>
+                            {% for task in data.tasks %}
+                                {% if task.assigned_to == member_data.member %}
+                                    {{ task.due_date|date:"Y-m-d" }}<br>
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+
+                    </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7">No members found for this project.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Toggle Gantt Chart button -->
+            <button class="btn btn-primary mt-3" id="toggleButton_{{ data.project.project_id }}" onclick="toggleChart('chartdiv_{{ data.project.project_id }}', 'toggleButton_{{ data.project.project_id }}')">Show Gantt Chart</button>
+
+
+                        
+            <!-- Gantt Chart if project has tasks -->
+            {% if data.project.tasks.count > 0 %}
+            <div id="chartdiv_{{ data.project.project_id }}" class="gantt-chart" style="width: 100%; height: 500px; border: 2px solid #ccc; border-radius: 8px; display: none;">
+                <style>
+                    @media print {
+                        .gantt-chart {
+                            display: none !important;
+                        }
+                    }
+                </style>
+            </div>
+            
+                        {% else %}
+            <p>No tasks available for this project.</p>
+            {% endif %}
+
+            <!-- Print button for the project -->
+            <button class="btn btn-secondary mt-3" onclick="printProject('project_{{ data.project.project_id }}')">Print Project</button>
+
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Include amCharts Resources -->
+<script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
+<script src="https://www.amcharts.com/lib/3/serial.js"></script>
+<script src="https://www.amcharts.com/lib/3/gantt.js"></script>
+<script src="https://www.amcharts.com/lib/3/plugins/export/export.min.js"></script>
+<link rel="stylesheet" href="https://www.amcharts.com/lib/3/plugins/export/export.css" type="text/css" media="all" />
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        {% for data in project_data %}
+        {% if data.project.tasks.count > 0 %}
+        var chart_{{ data.project.project_id }} = AmCharts.makeChart("chartdiv_{{ data.project.project_id }}", {
+            "type": "gantt",
+            "theme": "none",
+            "marginRight": 70,
+            "period": "MM", 
+            "dataDateFormat": "YYYY-MM-DD", 
+            "columnWidth": 0.5,
+            "valueAxis": {
+                "type": "date",
+                "minimum": "{{ data.project.start_date|date:'Y-m-d' }}",
+                "maximum": "{{ data.project.end_date|date:'Y-m-d' }}", 
+            },
+            "graph": {
+                "fillAlphas": 1,
+                "lineAlpha": 1,
+                "lineColor": "#fff",
+                "fillAlphas": 0.85,
+                "balloonText": "<b>[[task]]</b>:<br />[[start]] -- [[end]]"
+            },
+            "rotate": true,
+            "categoryField": "category", 
+            "segmentsField": "segments",
+            "colorField": "color",
+            "startDateField": "start",
+            "endDateField": "end",
+            "dataProvider": [
+                {% for task in data.project.tasks.all %}
+                {
+                    "category": "{{ task.task_name }}", 
+                    "segments": [{
+                        "start": "{{ task.start_date|date:'Y-m-d' }}",  
+                        "end": "{{ task.due_date|date:'Y-m-d' }}",     
+                        "color": "#b9783f",  
+                        "task": "{{ task.task_name }}"
+                    }]
+                },
+                {% endfor %}
+            ],
+            "valueScrollbar": {
+                "autoGridCount": true
+            },
+            "chartCursor": {
+                "cursorColor": "#55bb76",
+                "valueBalloonsEnabled": false
+            },
+            "export": {
+                "enabled": true
+            }
+        });
+        {% endif %}
+        {% endfor %}
+    });
+
+    // Function to toggle the Gantt Chart visibility
+    function toggleChart(chartId) {
+        var chartDiv = document.getElementById(chartId);
+        if (chartDiv.style.display === "none") {
+            chartDiv.style.display = "block";
+        } else {
+            chartDiv.style.display = "none";
+        }
+    }
+
+    // Function to print the project details
+function printProject(projectId) {
+    var projectContent = document.getElementById(projectId).innerHTML;
+    var printWindow = window.open('', '', 'height=600,width=800');
+
+    printWindow.document.write('<html><head><title>Project Details</title>');
+    printWindow.document.write('<style>');
+    printWindow.document.write('@media print {');
+    printWindow.document.write('  body { font-size: 16px; line-height: 1.5; }');
+    printWindow.document.write('  table { border-collapse: collapse; width: 100%; }');
+    printWindow.document.write('  th, td { border: 1px solid black; padding: 8px; text-align: left; }');
+    printWindow.document.write('  .btn { display: none; }'); // Hide buttons during print
+    printWindow.document.write('  #project_' + projectId + ' { width: 100%; font-size: 26px; }');
+    printWindow.document.write('  #project_' + projectId + ' h5 { font-size: 26px; }');
+    printWindow.document.write('  #project_' + projectId + ' p { font-size: 26px; }');
+    printWindow.document.write('  #project_' + projectId + ' small { font-size: 26px; }');
+    printWindow.document.write('  .gantt-chart { display: none; }'); // Hide the Gantt chart in print view using class
+    printWindow.document.write('  @page { margin: 0; padding: 0; }'); // Remove margins for full-width printing
+    printWindow.document.write('}');
+    printWindow.document.write('</style>');
+    printWindow.document.write('</head><body>');
+    printWindow.document.write(projectContent);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.print();
+}
+    
+    function toggleChart(chartId, buttonId) {
+        var chartDiv = document.getElementById(chartId);
+        var button = document.getElementById(buttonId);
+
+        if (chartDiv.style.display === "none") {
+            chartDiv.style.display = "block";
+            button.textContent = "Hide Gantt Chart";  // Change button text to "Hide"
+        } else {
+            chartDiv.style.display = "none";
+            button.textContent = "Show Gantt Chart";  // Change button text to "Show"
+        }
+    }
+</script>
+
+{% endblock %}
+
+

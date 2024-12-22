@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.db import models
 
 class UserManager(BaseUserManager):
-    def create_user(self, username, email, password=None, **extra_fields):
+    def create_user(self, username, email, password=None, created_by=None, **extra_fields):
         if not email:
             raise ValueError('The Email field is required')
         if not username:
@@ -11,6 +11,7 @@ class UserManager(BaseUserManager):
         email = self.normalize_email(email)
         user = self.model(username=username, email=email, **extra_fields)
         user.set_password(password)  # Hash the password
+        user.created_by = created_by  # Set the manager who created the user
         user.save(using=self._db)
         return user
 
@@ -19,6 +20,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
 
         return self.create_user(username, email, password, **extra_fields)
+
 
 class User(AbstractBaseUser, PermissionsMixin):
     ROLES = [
@@ -36,6 +38,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
     is_active = models.BooleanField(default=True)  # Required for authentication
     is_staff = models.BooleanField(default=False)  # Required for admin access
+    created_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='created_members')  # Link to the manager who created this user
 
     objects = UserManager()  # Link to custom manager
 
