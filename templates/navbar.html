@@ -1,175 +1,430 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container-fluid d-flex justify-content-between align-items-center">
-        <a class="navbar-brand me-3" href="{% if user.user_role == 'Manager' %}{% url 'manager-dashboard' %}{% else %}{% url 'member-dashboard' %}{% endif %}">
-            Home
+{% load static %}
+
+<nav class="navbar navbar-expand-lg" style="background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+    <div class="container-fluid">
+        <!-- Logo/Home Link -->
+        <a class="navbar-brand me-4" href="{% if user.user_role == 'Manager' %}{% url 'manager-dashboard' %}{% else %}{% url 'member-dashboard' %}{% endif %}"
+           style="font-size: 1.25rem; font-weight: 600; color: #333;">
+            <img src="{% static 'images/logo.png' %}" alt="Logo" style="height: 35px;">
         </a>
 
-        <!-- Left Section: Navigation Links -->
-        <div class="d-flex">
-            <div class="navbar-nav">
-                <a class="nav-link {% if request.path == '/projects/your-work/' %}active text-white p-2 me-3{% endif %}" 
-                   href="{% url 'projects:your_work' %}" 
-                   style="{% if request.path == '/projects/your-work/' %}background-color: #8ED9E3;{% endif %}">
-                    <i class="bi bi-folder"></i> Your Work
-                </a>
+        <!-- Center Section: Navigation Links -->
+        <div class="navbar-nav mx-auto">
+            <a class="nav-link d-flex align-items-center {% if request.path == '/projects/your-work/' %}active{% endif %}" 
+               href="{% url 'projects:your_work' %}" 
+               style="margin-right: 1rem; padding: 0.5rem 1rem; border-radius: 6px; color: {% if request.path == '/projects/your-work/' %}white{% else %}#666{% endif %}; 
+                      background-color: {% if request.path == '/projects/your-work/' %}#0086c9{% else %}transparent{% endif %}; 
+                      transition: all 0.2s ease;">
+                <i class="bi bi-folder me-2"></i> Your Work
+            </a>
 
-                {% if request.user.user_role == 'Manager' %}
-                    <a class="nav-link {% if request.path == '/users/teams/' %}active text-white p-2 me-3{% endif %}" 
-                    href="{% url 'users:team_list' %}" 
-                    style="{% if request.path == '/users/teams/' %}background-color: #8ED9E3;{% endif %}">
-                        <i class="bi bi-people"></i> Teams
-                    </a>
-                {% endif %}
+            {% if request.user.user_role == 'Manager' %}
+            <a class="nav-link d-flex align-items-center {% if request.path == '/users/team_list/' %}active{% endif %}" 
+                href="{% url 'users:team_list' %}" 
+                style="margin-right: 1rem; padding: 0.5rem 1rem; border-radius: 6px; color: {% if request.path == '/users/team_list/' %}white{% else %}#666{% endif %}; 
+                        background-color: {% if request.path == '/users/team_list/' %}#0086c9{% else %}transparent{% endif %}; 
+                        transition: all 0.2s ease;">
+                <i class="bi bi-people me-2"></i> Teams
+            </a>
 
-                {% if request.user.user_role == 'Manager' %}
-                    <a class="nav-link {% if request.path == '/projects/report/' %}active text-white p-2 me-3{% endif %}" 
-                    href="{% url 'projects:report' %}" 
-                    style="{% if request.path == '/projects/report/' %}background-color: #8ED9E3;{% endif %}">
-                        <i class="bi bi-bar-chart"></i> Report
-                    </a>
-                {% endif %}
-                
-                {% if request.user.user_role == 'Member' %}
-                    <a class="nav-link {% if request.path == '/projects/member-report/' %}active text-white p-2 me-3{% endif %}" 
-                    href="{% url 'projects:member-report' %}" 
-                    style="{% if request.path == '/projects/member-report/' %}background-color: #8ED9E3;{% endif %}">
-                        <i class="bi bi-bar-chart"></i> Report
-                    </a>
-                {% endif %}
-
-            </div>
+            <a class="nav-link d-flex align-items-center {% if request.path == '/projects/report/' %}active{% endif %}" 
+               href="{% url 'projects:report' %}" 
+               style="margin-right: 1rem; padding: 0.5rem 1rem; border-radius: 6px; color: {% if request.path == '/projects/report/' %}white{% else %}#666{% endif %}; 
+                      background-color: {% if request.path == '/projects/report/' %}#0086c9{% else %}transparent{% endif %}; 
+                      transition: all 0.2s ease;">
+                <i class="bi bi-bar-chart me-2"></i> Report
+            </a>
+            {% endif %}
+            
+            {% if request.user.user_role == 'Member' %}
+            <a class="nav-link d-flex align-items-center {% if request.path == '/projects/member-report/' %}active{% endif %}" 
+               href="{% url 'projects:member-report' %}" 
+               style="margin-right: 1rem; padding: 0.5rem 1rem; border-radius: 6px; color: {% if request.path == '/projects/member-report/' %}white{% else %}#666{% endif %}; 
+                      background-color: {% if request.path == '/projects/member-report/' %}#0086c9{% else %}transparent{% endif %}; 
+                      transition: all 0.2s ease;">
+                <i class="bi bi-bar-chart me-2"></i> Report
+            </a>
+            {% endif %}
         </div>
 
         <!-- Right Section: Profile and Notifications -->
         <div class="d-flex align-items-center">
             {% if request.user.is_authenticated %}
-            <span class="me-3">Welcome, {{ request.user.username }}!</span>
+            <span class="me-4" style="color: #666; font-weight: 500;">Welcome, {{ request.user.username }}!</span>
 
             {% if request.user.user_role != 'Manager' %}
-            <!-- Notifications Dropdown -->
-            <div class="dropdown me-3 position-relative">
-                <button class="btn btn-link text-decoration-none d-flex align-items-center dropdown-toggle" id="notificationButton" type="button">
-                    <i class="bi bi-bell me-1"></i> Notifications
-                    <span class="dropdown-arrow"></span>
+            <!-- Updated Notifications Dropdown -->
+            <div class="dropdown me-3 position-relative notifications-dropdown">
+                <button class="btn d-flex align-items-center notification-btn" type="button">
+                    <div class="notification-icon-wrapper">
+                        <i class="bi bi-bell"></i>
+                        {% if unread_count > 0 %}
+                        <span class="notification-badge">{{ unread_count }}</span>
+                        {% endif %}
+                    </div>
                 </button>
-                <ul class="dropdown-menu" id="notificationMenu">
+                <div class="notifications-menu">
+                    <div class="notifications-header">
+                        <h6>Notifications</h6>
+                        {% if unread_count > 0 %}
+                        <span class="unread-badge">{{ unread_count }} new</span>
+                        {% endif %}
+                    </div>
+                    <div class="notifications-list">
+                        {% if notifications %}
+                            {% for notification in notifications %}
+                            <div class="notification-item {% if not notification.is_read %}unread{% endif %}">
+                                <div class="notification-content">
+                                    <p>{{ notification.message }}</p>
+                                    
+                                </div>
+                                {% if not notification.is_read %}
+                                <div class="unread-indicator"></div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="no-notifications">
+                                <p>No new notifications</p>
+                            </div>
+                        {% endif %}
+                    </div>
                     {% if notifications %}
-                        {% for notification in notifications %}
-                        <li>
-                            <a class="dropdown-item {% if notification.is_read %}read{% else %}unread{% endif %}">
-                                {{ notification.message }}
-                            </a>
-                        </li>
-                        {% endfor %}
-                    {% else %}
-                        <li><a class="dropdown-item" href="#">No new notifications</a></li>
+                    
                     {% endif %}
-                </ul>
+                </div>
             </div>
             {% endif %}
 
             <!-- Settings Dropdown -->
-            <div class="dropdown position-relative">
-                <button class="btn btn-link text-decoration-none d-flex align-items-center dropdown-toggle" id="settingsButton" type="button">
-                    <i class="bi bi-gear me-1"></i> Settings
+            <div class="dropdown settings-dropdown position-relative">
+                <button class="btn d-flex align-items-center settings-button" id="settingsButton" type="button">
+                    <i class="bi bi-gear me-2"></i> Settings
                     <span class="dropdown-arrow"></span>
                 </button>
-                <ul class="dropdown-menu" id="settingsMenu">
+                <ul class="dropdown-menu settings-menu" id="settingsMenu">
                     <li><a class="dropdown-item" href="{% url 'users:profile' %}">Profile</a></li>
-                    <li><a class="dropdown-item text-danger" href="{% url 'users:logout' %}">Logout</a></li>
+                    <li><a class="dropdown-item" href="{% url 'users:logout' %}" style="color: #dc3545;">Logout</a></li>
                 </ul>
             </div>
             {% else %}
-            <a class="btn btn-link text-decoration-none" href="{% url 'login' %}">Login</a>
+            <a class="btn" href="{% url 'login' %}" 
+               style="padding: 0.5rem 1rem; background: transparent; color: #666;">
+                Login
+            </a>
             {% endif %}
         </div>
     </div>
 </nav>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const dropdownButtons = document.querySelectorAll('.dropdown-toggle');
-        dropdownButtons.forEach(button => {
-            const menu = button.nextElementSibling;
-            const arrow = button.querySelector('.dropdown-arrow');
-
-            button.addEventListener('click', () => {
-                menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-                arrow.classList.toggle('open');
-            });
-        });
-
-        document.addEventListener('click', (event) => {
-            dropdownButtons.forEach(button => {
-                const menu = button.nextElementSibling;
-                if (!button.contains(event.target)) {
-                    menu.style.display = 'none';
-                    button.querySelector('.dropdown-arrow').classList.remove('open');
-                }
-            });
-        });
-    });
-</script>
-
 <style>
+    /* Base navbar styles */
+    body {
+        padding-top: 73px;
+    }
+
+    .navbar {
+        padding: 0.75rem 1.5rem;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1030;
+        background-color: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+
+    .nav-link:hover {
+        background-color: #f5f5f5 !important;
+        color: #333 !important;
+    }
+
+    .nav-link.active:hover {
+        background-color: #0077b5 !important;
+        color: white !important;
+    }
+
+    /* Dropdown base styles */
     .dropdown-menu {
         display: none;
         position: absolute;
-        top: 100%;
-        right: 20px;
+        top: calc(100% + 0.5rem);
+        right: 0;
         background-color: white;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        border-radius: 0.25rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        border: 1px solid #eee;
         padding: 0.5rem 0;
-        list-style: none;
+        min-width: 200px;
         z-index: 1000;
-        min-width: 180px;
-        margin: 0;
     }
 
-    .dropdown-menu li {
-        padding: 0.5rem 1rem;
+    .dropdown-item {
+        padding: 0.625rem 1rem;
+        display: block;
+        text-decoration: none;
+        transition: background-color 0.2s;
     }
 
-    .dropdown-menu li:hover {
+    .dropdown-item:hover {
         background-color: #f8f9fa;
     }
 
-    .unread {
-        font-weight: bold;
-        background-color: #f0f0f0;
+    /* Notifications specific styles */
+    .notifications-dropdown {
+        position: relative;
     }
 
-    .read {
-        color: gray;
+    .notification-btn {
+        padding: 8px;
+        background: transparent;
+        border: none;
+        color: #666;
+        position: relative;
     }
 
-    .btn-link {
+    .notification-icon-wrapper {
+        position: relative;
+        padding: 8px;
+    }
+
+    .notification-badge {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background: #dc3545;
+        color: white;
+        border-radius: 50%;
+        padding: 2px 6px;
+        font-size: 0.75rem;
+        min-width: 18px;
+        height: 18px;
         display: flex;
         align-items: center;
-        gap: 0.25rem;
+        justify-content: center;
+        transform: translate(25%, -25%);
     }
 
+    .notifications-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        width: 320px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        margin-top: 8px;
+        z-index: 1000;
+    }
+
+    .notifications-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .notifications-header h6 {
+        margin: 0;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .unread-badge {
+        background: #f0f0f0;
+        color: #666;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+    }
+
+    .notifications-list {
+        max-height: 360px;
+        overflow-y: auto;
+    }
+
+    .notification-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid #f5f5f5;
+        transition: background-color 0.2s;
+        cursor: pointer;
+    }
+
+    
+
+    .notification-content {
+        flex: 1;
+    }
+
+    .notification-content p {
+        margin: 0;
+        color: #333;
+        font-size: 0.875rem;
+        line-height: 1.4;
+    }
+
+    .notification-time {
+        display: block;
+        color: #666;
+        font-size: 0.75rem;
+        margin-top: 4px;
+    }
+
+   
+
+    .no-notifications {
+        padding: 24px 16px;
+        text-align: center;
+        color: #666;
+    }
+
+    
+
+    
+
+    /* General utility styles */
     .dropdown-arrow {
         margin-left: 0.5rem;
-        border: solid gray;
+        border: solid #666;
         border-width: 0 2px 2px 0;
         display: inline-block;
-        padding: 3px;
+        padding: 2px;
         transform: rotate(45deg);
-        transition: transform 0.2s ease;
+        transition: transform 0.2s;
     }
 
     .dropdown-arrow.open {
         transform: rotate(-135deg);
     }
 
-    .dropdown-toggle::after {
-        display: none !important;
+    .btn.d-flex {
+        background: transparent !important;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
     }
 
+    .container-fluid {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
+    .navbar-nav {
+        flex-grow: 0;
+        justify-content: center;
+    }
 
+    .navbar-nav .nav-link {
+        margin-right: 1rem;
+    }
 
-    
+    .btn:focus,
+    .btn:active,
+    .btn:hover {
+        outline: none !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    .settings-dropdown {
+        position: relative;
+        z-index: 1050; /* Ensure it's above other elements */
+    }
+
+    .settings-button {
+        padding: 0.5rem 1rem;
+        background: transparent;
+        color: #666;
+        position: relative;
+        z-index: 1050;
+        cursor: pointer;
+    }
+
+    .settings-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background-color: white;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        border: 1px solid #eee;
+        padding: 0.5rem 0;
+        min-width: 200px;
+        z-index: 1051;
+        display: none;
+    }
+
+    /* Ensure nav-links don't overlap */
+    .nav-link {
+        position: relative;
+        z-index: 1040;
+    }
+
+    /* Prevent pointer-events interference */
+    .navbar-nav {
+        pointer-events: auto;
+    }
+
+    .dropdown-item {
+        cursor: pointer;
+    }
 </style>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Existing settings menu code
+        const settingsButton = document.querySelector('.settings-button');
+        const settingsMenu = document.querySelector('.settings-menu');
+        const arrow = settingsButton.querySelector('.dropdown-arrow');
+    
+        // Settings menu handlers (keeping existing code)
+        settingsButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const isOpen = settingsMenu.style.display === 'block';
+            settingsMenu.style.display = isOpen ? 'none' : 'block';
+            arrow.classList.toggle('open');
+        });
+    
+        // New notification menu code
+        const notificationBtn = document.querySelector('.notification-btn');
+        const notificationsMenu = document.querySelector('.notifications-menu');
+    
+        // Toggle notifications menu
+        notificationBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const isOpen = notificationsMenu.style.display === 'block';
+            notificationsMenu.style.display = isOpen ? 'none' : 'block';
+            
+            // If opening the notifications menu, close the settings menu
+            if (!isOpen) {
+                settingsMenu.style.display = 'none';
+                arrow.classList.remove('open');
+            }
+        });
+    
+        // Close both menus when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!settingsButton.contains(e.target) && !settingsMenu.contains(e.target)) {
+                settingsMenu.style.display = 'none';
+                arrow.classList.remove('open');
+            }
+            if (!notificationBtn.contains(e.target) && !notificationsMenu.contains(e.target)) {
+                notificationsMenu.style.display = 'none';
+            }
+        });
+    
+        // Prevent menus from closing when clicking inside them
+        settingsMenu.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    
+        notificationsMenu.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    });
+</script>

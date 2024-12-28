@@ -1,20 +1,143 @@
 {% extends 'base.html' %}
 
-{% load static %}  <!-- Add this line to load static files -->
+{% load static %}
 
 {% block content %}
+<style>
+  .profile-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .profile-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .profile-header h2 {
+    color: #1f2937;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+  }
+
+  .profile-image-container {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 1.5rem;
+  }
+
+  .profile-image {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .profile-details {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+
+  .profile-field {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .profile-field:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .field-label {
+    font-weight: 600;
+    color: #4b5563;
+    width: 100px;
+    flex-shrink: 0;
+  }
+
+  .field-value {
+    color: #1f2937;
+    flex-grow: 1;
+  }
+
+  .edit-button {
+    display: inline-block;
+    margin-top: 1.5rem;
+    padding: 0.75rem 2rem;
+    background-color: #0086c9;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  }
+
+  .edit-button:hover {
+    background-color: #0077b5;
+  }
+
+  .no-bio {
+    color: #9ca3af;
+    font-style: italic;
+  }
+</style>
+
+<div class="profile-container">
+  <div class="profile-header">
     <h2>{{ user.name }}'s Profile</h2>
+    
+    <div class="profile-image-container">
+      {% if user.profile_image %}
+        <img src="{{ user.profile_image.url }}" alt="Profile Image" class="profile-image">
+      {% else %}
+        <img src="{% static 'images/profile.jpg' %}" alt="Default Profile Image" class="profile-image">
+      {% endif %}
+    </div>
+  </div>
 
-    {% if user.profile_image %}
-        <img src="{{ user.profile_image.url }}" alt="Profile Image" width="150" height="150">
-    {% else %}
-        <!-- Display a fallback image if profile image is not set -->
-        <img src="{% static 'images/PatternDesign.png' %}" alt="Default Profile Image" width="150" height="150">
-    {% endif %}
+  <div class="profile-details">
+    <div class="profile-field">
+      <span class="field-label">Username</span>
+      <span class="field-value">{{ user.username }}</span>
+    </div>
 
-    <p><strong>Email:</strong> {{ user.email }}</p>
-    <p><strong>Username:</strong> {{ user.username }}</p>
-    <p><strong>Bio:</strong> {{ user.bio }}</p>
-    <p><strong>Contact:</strong> {{ user.contact_no }}</p>
-    <a href="{% url 'users:profile_edit' %}" class="btn btn-primary">Edit</a>
+    <div class="profile-field">
+      <span class="field-label">Email</span>
+      <span class="field-value">{{ user.email }}</span>
+    </div>
+
+    <div class="profile-field">
+      <span class="field-label">Contact</span>
+      <span class="field-value">{{ user.contact_no|default:"Not provided" }}</span>
+    </div>
+
+    <div class="profile-field">
+      <span class="field-label">Bio</span>
+      <span class="field-value">
+        {% if user.bio %}
+          {{ user.bio }}
+        {% else %}
+          <span class="no-bio">No bio provided</span>
+        {% endif %}
+      </span>
+    </div>
+  </div>
+
+  <div style="text-align: center;">
+    <a href="{% url 'users:profile_edit' %}" class="edit-button">Edit Profile</a>
+  </div>
+</div>
 {% endblock %}

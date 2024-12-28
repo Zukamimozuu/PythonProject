@@ -3,11 +3,128 @@
 {% block title %}Update User{% endblock %}
 
 {% block content %}
-<h1>Update User</h1>
-<form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}  <!-- This will render the updated form without user_role -->
-    <button type="submit" class="btn btn-primary">Save Changes</button>
-</form>
-<a href="{% url 'users:team_list' %}" class="btn btn-secondary mt-3">Back to Team List</a>
+<style>
+  :root {
+    --primary-color: #0086c9;
+    --border-color: #e5e7eb;
+    --text-color: #374151;
+    --background-color: #f9fafb;
+  }
+
+  .container {
+    max-width: 480px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+
+  .card {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  }
+
+  h1 {
+    color: var(--text-color);
+    font-size: 1.875rem;
+    margin: 0 0 1.5rem 0;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-color);
+  }
+
+  input, select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.15s ease-in-out;
+    box-sizing: border-box;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  }
+
+  .error {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+  }
+
+  .button-group {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    border: none;
+    text-decoration: none;
+    text-align: center;
+    font-size: 1rem;
+  }
+
+  .btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    flex: 1;
+  }
+
+  .btn-primary:hover {
+    background-color: #0077b5;
+  }
+
+  .btn-secondary {
+    background-color: #6b7280;
+    color: white;
+    flex: 1;
+  }
+
+  .btn-secondary:hover {
+    background-color: #4b5563;
+  }
+</style>
+
+<div class="container">
+  <div class="card">
+    <h1>Update User</h1>
+    
+    <form method="POST">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="form-group">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <div class="error">{{ field.errors }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+      
+      <div class="button-group">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a href="{% url 'users:team_list' %}" class="btn btn-secondary">Back to Team List</a>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock %}

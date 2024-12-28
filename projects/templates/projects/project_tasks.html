@@ -3,128 +3,193 @@
 {% block title %}{{ project.project_name }} Tasks{% endblock %}
 
 {% block content %}
-<h1>Tasks for Project: {{ project.project_name }}</h1>
-<a href="{% url 'tasks:add_task' project_id=project.project_id %}" class="btn btn-primary">Add Task</a>
 
-<!-- Display Project Members -->
-<h2>Project Members</h2>
-<ul>
-    {% for member in project.members.all %}
-    <li>{{ member.name }} - {{ member.user_role }}</li>
-    {% empty %}
-    <li>No members assigned to this project.</li>
-    {% endfor %}
-</ul>
+{% if request.user.is_authenticated and request.user.user_role == "Manager" %}
 
-<!-- Custom CSS for Dropdown -->
+
+<div class="container py-4">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-0">{{ project.project_name }}</h1>
+            <p class="text-muted mt-2">Project Tasks Overview</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'projects:your_work' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Back
+            </a>
+            <a href="{% url 'tasks:add_task' project_id=project.project_id %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>Add Task
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Project Members Card -->
+    <div class="card mb-4">
+        <div class="card-header bg-transparent">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-people me-2"></i>Project Members
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                {% for member in project.members.all %}
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center p-3 border rounded">
+                            <div class="avatar me-3">
+                                <i class="bi bi-person-circle fs-3"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">{{ member.name }}</h6>
+                                <small class="text-muted">{{ member.user_role }}</small>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12 text-center py-3 text-muted">
+                        <i class="bi bi-people-fill me-2"></i>No members assigned to this project.
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Tasks Section -->
+    <div class="card">
+        <div class="card-header bg-transparent">
+            <h5 class="card-title mb-0">
+                {% if request.user == project.created_by %}
+                    <i class="bi bi-list-check me-2"></i>All Project Tasks
+                {% else %}
+                    <i class="bi bi-person-check me-2"></i>Tasks Assigned to You
+                {% endif %}
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Task Name</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Start Date</th>
+                            <th>Due Date</th>
+                            {% if request.user == project.created_by %}
+                                <th>Assigned To</th>
+                            {% else %}
+                                <th>Update Status</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for task in tasks %}
+                        <tr>
+                            <td>{{ task.task_name }}</td>
+                            <td>
+                                <span class="badge {% if task.priority == 'High' %}bg-danger{% elif task.priority == 'Medium' %}bg-warning{% else %}bg-success{% endif %}">
+                                    {{ task.priority }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {% if task.status == 'Completed' %}bg-success{% elif task.status == 'In Progress' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                    {{ task.status }}
+                                </span>
+                            </td>
+                            <td>{{ task.start_date|date:"M d, Y" }}</td>
+                            <td>{{ task.due_date|date:"M d, Y" }}</td>
+                            {% if request.user == project.created_by %}
+                                <td>
+                                    {% if task.assigned_to %}
+                                        {{ task.assigned_to.name }}
+                                    {% else %}
+                                        <span class="text-muted"><em>Not assigned</em></span>
+                                    {% endif %}
+                                </td>
+                            {% else %}
+                                <td>
+                                    {% if task.task_id %}
+                                    <form method="POST" action="{% url 'tasks:update_status' task_id=task.task_id %}" class="d-flex gap-2">
+                                        {% csrf_token %}
+                                        <select name="status" class="form-select form-select-sm status-select">
+                                            <option value="Pending" {% if task.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                            <option value="In Progress" {% if task.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                                            <option value="Completed" {% if task.status == 'Completed' %}selected{% endif %}>Completed</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                        <span class="text-muted">No task ID available</span>
+                                    {% endif %}
+                                </td>
+                            {% endif %}
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox-fill fs-4 d-block mb-2"></i>
+                                {% if request.user == project.created_by %}
+                                    No tasks in this project.
+                                {% else %}
+                                    No tasks assigned to you for this project.
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
-    /* Custom dropdown styling */
-    .custom-dropdown {
-        padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 16px;
-        width: 100%;
-        background-color: #fff;
-        color: #333;
+    .card {
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
-    .custom-dropdown:focus {
-        border-color: #5c9f68;
-        outline: none;
-        background-color: #f0f8f0;
+    .status-select {
+        max-width: 140px;
+    }
+
+    .table > :not(caption) > * > * {
+        padding: 1rem;
+    }
+
+    .badge {
+        padding: 0.5em 0.8em;
+        font-weight: 500;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+    }
+
+    .avatar {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+    }
+
+    .card-header {
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(0,0,0,0.02);
     }
 </style>
-
-<!-- For Managers: Display all tasks in a table -->
-{% if request.user == project.created_by %}
-    <h2>All Tasks for this Project</h2>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Task Name</th>
-                <th>Priority</th>
-                <th>Status</th>
-                <th>Start Date</th>
-                <th>Due Date</th>
-                <th>Assigned To</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for task in tasks %}
-            <tr>
-                <td>{{ task.task_name }}</td>
-                <td>{{ task.priority }}</td>
-                <td>{{ task.status }}</td>
-                <td>{{ task.start_date }}</td>
-                <td>{{ task.due_date }}</td>
-                <td>
-                    {% if task.assigned_to %}
-                    {{ task.assigned_to.name }}
-                    {% else %}
-                    <em>Not assigned</em>
-                    {% endif %}
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="7" class="text-center">No tasks in this project.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-{% endif %}
-
-<!-- For Members: Display only tasks assigned to the logged-in user in a table -->
-{% if request.user != project.created_by %}
-    <h2>Tasks Assigned to You</h2>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Task Name</th>
-                <th>Priority</th>
-                <th>Status</th>
-                <th>Start Date</th>
-                <th>Due Date</th>
-                <th>Update Status</th>
-
-            </tr>
-        </thead>
-        <tbody>
-            {% for task in tasks %}
-            <tr>
-                <td>{{ task.task_name }}</td>
-                <td>{{ task.priority }}</td>
-                <td>{{ task.status }}</td>
-                <td>{{ task.start_date }}</td>
-                <td>{{ task.due_date }}</td>
-                <td>
-                    {% if task.task_id %}
-                    <form method="POST" action="{% url 'tasks:update_status' task_id=task.task_id %}">
-                        {% csrf_token %}
-                        <!-- Custom Dropdown for Status -->
-                        <select name="status" class="custom-dropdown">
-                            <option value="Pending" {% if task.status == 'Pending' %}selected{% endif %}>Pending</option>
-                            <option value="In Progress" {% if task.status == 'In Progress' %}selected{% endif %}>In Progress</option>
-                            <option value="Completed" {% if task.status == 'Completed' %}selected{% endif %}>Completed</option>
-                        </select>
-                    
-                        <button type="submit" class="btn btn-success btn-sm">Update</button>
-                    </form>
-                    
-                    {% else %}
-                        <p>No task ID available</p>
-                    {% endif %}
-                </td>
-            </tr>
-        {% empty %}
-            <tr>
-                <td colspan="6" class="text-center">No tasks assigned to you for this project.</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-{% endif %}
-
-<a href="{% url 'projects:your_work' %}" class="btn btn-secondary">Back to Your Work</a>
 {% endblock %}

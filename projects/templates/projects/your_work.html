@@ -3,41 +3,148 @@
 {% block title %}Your Projects{% endblock %}
 
 {% block content %}
-<h1>Your Projects</h1>
-
-<!-- Display User Role and User Object for debugging -->
-<p>User: {{ user }}</p>
-<p>User Role: "{{ user.user_role }}"</p>
-
-<!-- List of projects -->
-<h2>Projects You Are Part Of</h2>
-<ul>
-    {% for project in projects %}
-    <li>
-        <a href="{% url 'projects:project_tasks' project.project_id %}">{{ project.project_name }}</a>
-        {% if project.created_by == user %}
-            <form action="{% url 'projects:delete_project' project.project_id %}" method="POST">
-                {% csrf_token %}
-                <button type="submit">Delete</button>
-            </form>
+<div class="container py-4">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 mb-0">Your Projects</h1>
+        {% if user.user_role == 'Manager' %}
+            <a href="{% url 'projects:create_project' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>Create New Project
+            </a>
         {% endif %}
-    </li>
-    {% empty %}
-    <li>No projects found.</li>
-    {% endfor %}
-</ul>
+    </div>
 
-{% if project.created_by == user %}
-<h2>Create a New Project</h2>
-<a href="{% url 'projects:create_project' %}" class="btn btn-primary">Add Project</a>
-{% endif %}
-
-{% if messages %}
-    <ul>
+    <!-- Messages/Alerts -->
+    {% if messages %}
         {% for message in messages %}
-            <li>{{ message }}</li>
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         {% endfor %}
-    </ul>
-{% endif %}
+    {% endif %}
 
+    <!-- Projects Grid -->
+    <div class="row g-4">
+        {% for project in projects %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 project-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title mb-0">{{ project.project_name }}</h5>
+                            <div class="dropdown">
+                                <button class="btn btn-link p-0" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'projects:project_tasks' project.project_id %}">
+                                            <i class="bi bi-list-task me-2"></i>View Tasks
+                                        </a>
+                                    </li>
+                                    {% if project.created_by == user %}
+                                        <li>
+                                            <form action="{% url 'projects:delete_project' project.project_id %}" method="POST">
+                                                {% csrf_token %}
+                                                <button type="submit" class="dropdown-item text-danger">
+                                                    <i class="bi bi-trash me-2"></i>Delete Project
+                                                </button>
+                                            </form>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Project Details -->
+                        <p class="card-text text-muted mb-3">
+                            <i class="bi bi-person me-2"></i>Created by: {{ project.created_by.username }}
+                        </p>
+                        
+                        <a href="{% url 'projects:project_tasks' project.project_id %}" 
+                           class="btn btn-outline-primary w-100">
+                            View Project Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="bi bi-folder-x display-1 text-muted mb-3"></i>
+                    <h3 class="text-muted">No Projects Found</h3>
+                    <p class="text-muted mb-4">You haven't been assigned to any projects yet.</p>
+                    {% if user.user_role == 'Manager' %}
+                        <a href="{% url 'projects:create_project' %}" class="btn btn-primary">
+                            Create Your First Project
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .project-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .project-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .btn-link {
+        color: #6c757d;
+    }
+
+    .btn-link:hover {
+        color: #0086c9;
+    }
+
+    .card-title {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    .dropdown-item {
+        padding: 0.5rem 1rem;
+    }
+
+    .dropdown-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .dropdown-item.text-danger:hover {
+        background-color: #fff5f5;
+    }
+
+    .alert {
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .btn-primary {
+        background-color: #0086c9;
+        border-color: #0086c9;
+    }
+
+    .btn-primary:hover {
+        background-color: #0077b5;
+        border-color: #0077b5;
+    }
+
+    .btn-outline-primary {
+        color: #0086c9;
+        border-color: #0086c9;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #0086c9;
+        border-color: #0086c9;
+    }
+</style>
 {% endblock %}

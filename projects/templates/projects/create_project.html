@@ -3,39 +3,241 @@
 {% block title %}Create Project{% endblock %}
 
 {% block content %}
-<h1>Create a New Project</h1>
+<style>
+  :root {
+    --primary-color: #0086c9;
+    --border-color: #e5e7eb;
+    --text-color: #374151;
+    --background-color: #f9fafb;
+  }
 
-<form method="POST">
-    {% csrf_token %}
-    {{ form.non_field_errors }}
-    <div>
-        {{ form.project_name.label_tag }} {{ form.project_name }}
-    </div>
-    <div>
-        {{ form.description.label_tag }} {{ form.description }}
-    </div>
-    <div>
-        {{ form.start_date.label_tag }} {{ form.start_date }}
-    </div>
-    <div>
-        {{ form.end_date.label_tag }} {{ form.end_date }}
-    </div>
-    <div>
-        <h3>Members</h3>
-        {% for checkbox in form.members %}
-            <div>
-                {{ checkbox.tag }} {{ checkbox.choice_label }}
+  .container {
+    max-width: 720px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+
+  .card {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  }
+
+  h1 {
+    color: var(--text-color);
+    font-size: 1.875rem;
+    margin: 0 0 1.5rem 0;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  h3 {
+    color: var(--text-color);
+    font-size: 1.25rem;
+    margin: 1.5rem 0 1rem 0;
+    font-weight: 500;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-color);
+  }
+
+  input[type="text"],
+  input[type="date"],
+  textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.15s ease-in-out;
+    box-sizing: border-box;
+  }
+
+  textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  input:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  }
+
+  .members-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .member-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    transition: background-color 0.15s ease-in-out;
+  }
+
+  .member-checkbox:hover {
+    background-color: var(--background-color);
+  }
+
+  .member-checkbox input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+  }
+
+  .error-list {
+    background-color: #fee2e2;
+    border: 1px solid #fecaca;
+    color: #ef4444;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    list-style-type: none;
+  }
+
+  .error-list li {
+    margin: 0.25rem 0;
+  }
+
+  .messages {
+    margin-top: 1.5rem;
+  }
+
+  .messages li {
+    background-color: #e0f2fe;
+    border: 1px solid #bae6fd;
+    color: #0369a1;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    list-style-type: none;
+  }
+
+  button[type="submit"] {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+    width: 100%;
+    margin-top: 1.5rem;
+  }
+
+  button[type="submit"]:hover {
+    background-color: #0077b5;
+  }
+</style>
+
+<div class="container">
+  <div class="card">
+    <h1>Create a New Project</h1>
+
+    {% if form.non_field_errors %}
+      <ul class="error-list">
+        {{ form.non_field_errors }}
+      </ul>
+    {% endif %}
+
+    <form method="POST">
+      {% csrf_token %}
+      
+      <div class="form-group">
+        <label for="{{ form.project_name.id_for_label }}">{{ form.project_name.label }}</label>
+        {{ form.project_name }}
+        {% if form.project_name.errors %}
+          <ul class="error-list">
+            {% for error in form.project_name.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+        {{ form.description }}
+        {% if form.description.errors %}
+          <ul class="error-list">
+            {% for error in form.description.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.start_date.id_for_label }}">{{ form.start_date.label }}</label>
+        {{ form.start_date }}
+        {% if form.start_date.errors %}
+          <ul class="error-list">
+            {% for error in form.start_date.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.end_date.id_for_label }}">{{ form.end_date.label }}</label>
+        {{ form.end_date }}
+        {% if form.end_date.errors %}
+          <ul class="error-list">
+            {% for error in form.end_date.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <h3>Project Members</h3>
+        <div class="members-grid">
+          {% for checkbox in form.members %}
+            <div class="member-checkbox">
+              {{ checkbox.tag }}
+              <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
             </div>
-        {% endfor %}
-    </div>
-    <button type="submit">Create Project</button>
-</form>
+          {% endfor %}
+        </div>
+        {% if form.members.errors %}
+          <ul class="error-list">
+            {% for error in form.members.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
 
-{% if messages %}
-    <ul>
+      <button type="submit">Create Project</button>
+    </form>
+
+    {% if messages %}
+      <ul class="messages">
         {% for message in messages %}
-            <li>{{ message }}</li>
+          <li>{{ message }}</li>
         {% endfor %}
-    </ul>
-{% endif %}
+      </ul>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}

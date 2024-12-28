@@ -1,90 +1,215 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1 class="mb-4">Project Member Report</h1>
+<style>
+    :root {
+        --primary-color: #4a90e2;
+        --border-color: #e1e4e8;
+        --background-color: #f5f7fa;
+        --text-color: #2d3748;
+    }
 
-    <div class="card">
-        <div class="card-body">
-            <h4 class="card-title">Your Projects</h4>
+    .report-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
 
-            {% for project_data in projects %}
-                <div id="project-{{ project_data.project.project_id }}" class="mb-4">
-                    <h5>{{ project_data.project.project_name }}</h5>
-                    <p><strong>Project Description:</strong> {{ project_data.project.description }}</p>
-                    <p><strong>Start Date:</strong> {{ project_data.project.start_date }}</p>
-                    <p><strong>End Date:</strong> {{ project_data.project.end_date }}</p>
+    .report-header {
+        margin-bottom: 2rem;
+    }
 
-                    <!-- Print Button for the Specific Project -->
-                    <button onclick="printProject({{ project_data.project.project_id }});" class="btn btn-primary mb-4">Print Project</button>
+    .project-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+    }
 
-                    <h6>Tasks:</h6>
+    .project-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
 
-                    <!-- Table displaying tasks -->
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Task Name</th>
-                                <th>Task Progress</th>
-                                <th>Priority</th>
-                                <th>Status</th>
-                                <th>Start Date</th>
-                                <th>Due Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for task in project_data.tasks %}
-                                <tr>
-                                    <td>{{ task.task_name }}</td>
-                                    <td>{{ task.progress }}%</td>
-                                    <td>{{ task.priority }}</td>
-                                    <td>{{ task.status }}</td>
-                                    <td>{{ task.start_date }}</td>
-                                    <td>{{ task.due_date }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+    .project-title {
+        color: var(--text-color);
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+    }
 
-                    <p><strong>Total Progress:</strong> {{ project_data.total_progress|floatformat:2 }}%</p>
-                </div>
-            {% endfor %}
-        </div>
+    .project-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: var(--background-color);
+        border-radius: 6px;
+    }
+
+    .meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .meta-label {
+        font-size: 0.875rem;
+        color: #666;
+        font-weight: 500;
+    }
+
+    .meta-value {
+        font-size: 0.95rem;
+        color: var(--text-color);
+    }
+
+    .task-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+    }
+
+    .task-table th {
+        background: var(--background-color);
+        padding: 0.75rem;
+        font-weight: 600;
+        text-align: left;
+        font-size: 0.875rem;
+        border: 1px solid var(--border-color);
+    }
+
+    .task-table td {
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        font-size: 0.875rem;
+    }
+
+    .progress-value {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .print-btn {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.875rem;
+        transition: background-color 0.2s;
+    }
+
+    .print-btn:hover {
+        background-color: #357abd;
+    }
+
+    @media print {
+        .print-btn {
+            display: none;
+        }
+    }
+</style>
+
+<div class="report-container">
+    <div class="report-header">
+        <h1>Project Member Report</h1>
     </div>
+
+    {% for project_data in projects %}
+        <div id="project-{{ project_data.project.project_id }}" class="project-card">
+            <div class="project-header">
+                <h2 class="project-title">{{ project_data.project.project_name }}</h2>
+                <button onclick="printProject({{ project_data.project.project_id }});" class="print-btn">
+                    Print Report
+                </button>
+            </div>
+
+            <div class="project-meta">
+                <div class="meta-item">
+                    <span class="meta-label">Start Date</span>
+                    <span class="meta-value">{{ project_data.project.start_date }}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">End Date</span>
+                    <span class="meta-value">{{ project_data.project.end_date }}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Total Progress</span>
+                    <span class="meta-value progress-value">{{ project_data.total_progress|floatformat:2 }}%</span>
+                </div>
+            </div>
+
+            <div class="meta-item" style="margin-bottom: 1.5rem;">
+                <span class="meta-label">Description</span>
+                <span class="meta-value">{{ project_data.project.description }}</span>
+            </div>
+
+            <table class="task-table">
+                <thead>
+                    <tr>
+                        <th>Task Name</th>
+                        <th>Progress</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Start Date</th>
+                        <th>Due Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in project_data.tasks %}
+                        <tr>
+                            <td>{{ task.task_name }}</td>
+                            <td class="progress-value">{{ task.progress }}%</td>
+                            <td>{{ task.priority }}</td>
+                            <td>{{ task.status }}</td>
+                            <td>{{ task.start_date }}</td>
+                            <td>{{ task.due_date }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endfor %}
 </div>
 
 <script>
     function printProject(projectId) {
-        // Get the HTML content of the specific project by its ID
         var projectContent = document.getElementById('project-' + projectId).innerHTML;
-
-        // Open a new window for printing
         var printWindow = window.open('', '', 'height=600,width=800');
-
-        // Write the project content into the new window
-        printWindow.document.write('<html><head><title>Print Project</title>');
         
-        // Add custom CSS styles for the table and other elements
-        printWindow.document.write('<style>');
-        printWindow.document.write('table { width: 100%; border-collapse: collapse; }');
-        printWindow.document.write('th, td { padding: 8px; text-align: left; border: 1px solid #ddd; }');
-        printWindow.document.write('th { background-color: #f2f2f2; font-weight: bold; }');
-        printWindow.document.write('h1 { font-size: 24px; margin-bottom: 20px; }');
-        printWindow.document.write('hr { margin: 20px 0; }');
-        printWindow.document.write('</style>');
-
-        printWindow.document.write('</head><body>');
-        printWindow.document.write('<h1>Project Report</h1>');
-        printWindow.document.write('<hr>');
-        printWindow.document.write(projectContent);  // Write the content of the project to the window
-        printWindow.document.write('</body></html>');
-
-        // Close the document and initiate the print dialog
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>Project Report</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; }
+                    table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+                    th, td { padding: 8px; text-align: left; border: 1px solid #ddd; }
+                    th { background-color: #f5f7fa; font-weight: bold; }
+                    .project-meta { margin: 1rem 0; padding: 1rem; background: #f5f7fa; }
+                    .meta-item { margin-bottom: 0.5rem; }
+                    .meta-label { font-weight: bold; }
+                    .progress-value { color: #4a90e2; font-weight: bold; }
+                    @media print {
+                        .print-btn { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>Project Report</h1>
+                ${projectContent}
+            </body>
+            </html>
+        `);
+        
         printWindow.document.close();
         printWindow.print();
     }
 </script>
-
-</script>
-
 {% endblock %}
