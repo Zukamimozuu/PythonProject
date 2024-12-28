@@ -189,14 +189,13 @@
     </button>
     {% endif %}
   </div>
+  
+    {% if messages %}
+      <div class="alert alert-danger text-center border w-100" role="alert">
+        <p>{{ messages.0 }}</p>
+      </div>
+    {% endif %}
 
-  {% if messages %}
-    <div class="alert">
-      {% for message in messages %}
-        <p>{{ message }}</p>
-      {% endfor %}
-    </div>
-  {% endif %}
 
   {% if request.user.user_role == 'Manager' %}
   <div id="addUserForm" style="display:none; max-width: 500px; margin: 0 auto;">

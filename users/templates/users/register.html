@@ -82,6 +82,7 @@
 <body class="bg-light d-flex justify-content-center align-items-center vh-100">
     <div class="container">
         <div class="row justify-content-evenly align-items-center w-100">
+
          
             <div class="col-md-6 p-4" style="max-width: 400px;">
                 <h1 class="h4 mb-4 text-dark fw-bold">Project Management Web Application</h1>
@@ -109,6 +110,14 @@
                         <input type="password" id="confirm_password" name="confirm_password" required class="form-control">
                         <i id="toggleConfirmPassword" class="bi bi-eye-slash position-absolute" onclick="toggleConfirmPassword()"></i>
                     </div>
+                    {% if messages %}
+                        {% for message in messages %}
+                        <div class="w-100 py-2 text-danger fw-semibold fs-6 {{ message.tags }}" role="alert">
+                            {{ message }}
+                        </div>
+                        
+                        {% endfor %}
+                    {% endif %}
                     <button type="submit" id="submit_button" class="btn btn-primary w-100">Sign up</button>
                 </form>
              

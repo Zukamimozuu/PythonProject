@@ -140,14 +140,22 @@ def user_login(request):
 def register(request):
     if request.method == 'POST':
         form = SignupForm(request.POST)
-        if form.is_valid():
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+
+        # Check if the username or email already exists
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Username already exists.')
+        elif User.objects.filter(email=email).exists():
+            messages.error(request, 'Email already registered.')
+        elif form.is_valid():
             form.save()  # Save the user with default 'Manager' role
+            messages.success(request, 'Registration successful! You can now log in.')
             return redirect('users:login')  # Redirect to the 'login' page after successful registration
     else:
         form = SignupForm()
-      
-    return render(request, 'users/register.html', {'form': form})
 
+    return render(request, 'users/register.html', {'form': form})
 
 def logout_view(request):
     logout(request)
